@@ -11,7 +11,7 @@ def getData(num_cfg):
     for row in tqdm(range(0, datas.shape[0])):
         address = datas.loc[row, 'address']
         reentrancy = datas.loc[row, 'reentrancy']
-        with open("/home/huangshiping/data/cfg_embeddings/" + address + ".json", "r") as f:
+        with open("/home/huangshiping/data/cfg_embeddings1/" + address + ".json", "r") as f:
             cfg = json.load(f)
             # print(cfg)
             x = []
@@ -25,6 +25,7 @@ def getData(num_cfg):
                 slices.extend([ index for n in range(len(graph['x']))])
                 index += 1
             if len(x) == 0:
+                print(address)
                 continue
             mask = [False for n in range(0, len(cfg))]
             for i in range(0, num_cfg - len(cfg)):
@@ -45,7 +46,7 @@ def getData(num_cfg):
             data.mask = torch.tensor(mask, dtype=torch.bool)
             contracts.append(data)
     # return contracts
-    torch.save(contracts, "./data/contracts.pkl")
+    torch.save(contracts, "./data/contracts1.pkl")
     # with open("./data/contracts.json", "w") as f:
     #     f.write(json.dump(contracts))
 
@@ -103,5 +104,5 @@ def loadData(contracts, batch_size, shuffle=False):
 # print(num_cfg)
 
 # getData(256)
-# contracts = torch.load("./data/contracts.pkl")
+# contracts = torch.load("./data/contracts1.pkl")
 # print(len(contracts))

@@ -1,11 +1,13 @@
 import torch
 from sklearn.metrics import f1_score, accuracy_score
 from sklearn.model_selection import KFold
-from torch.nn import Linear, TransformerEncoder, TransformerEncoderLayer
+from torch.nn import Linear, TransformerEncoder, TransformerEncoderLayer, Embedding
 import torch.nn.functional as F
 from torch_geometric.nn import GCNConv
 from torch_geometric.nn import global_mean_pool
 from util import *
+import os
+os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 
 seed = 12345
 torch.manual_seed(seed)
@@ -22,8 +24,9 @@ class GCN(torch.nn.Module):
         self.conv3 = GCNConv(hidden_channels, hidden_channels)
         encoder_layer = TransformerEncoderLayer(hidden_channels, 2, batch_first=True)
         self.encoder = TransformerEncoder(encoder_layer, num_layers=2)
-        self.lin1 = Linear(num_cfg * hidden_channels, hidden_channels)
+        self.lin1 = Linear(hidden_channels, hidden_channels)
         self.lin2 = Linear(hidden_channels, 2)
+        self.embed = Embedding(1, hidden_channels)
 
     def forward(self, x, edge_index, batch, mask, num_contracts):
         # 1. Obtain node embeddings 
@@ -36,9 +39,16 @@ class GCN(torch.nn.Module):
         # 2. Readout layer
         x = global_mean_pool(x, batch)  # [batch_size, hidden_channels]
         x = x.reshape(num_contracts, self.num_cfg, self.hidden_channels)
+        cls = self.embed(torch.zeros([x.shape[0], 1], dtype=torch.long, device=device))
+        # cls.view(x.shape[0], -1)
         # x = torch.rand(32, 10, 512)
+        # cls.cpu()
+        # x.cpu()
+        x = torch.cat([cls, x], 1)
+        cls_mask = torch.zeros(x.shape[0], 1, dtype=torch.bool, device=device)
+        mask = torch.cat([cls_mask, mask], 1)
         x = self.encoder(src=x, src_key_padding_mask=mask)
-        x = x.view(num_contracts, -1)
+        x = x[:, 0, :]
         # 3. Apply a final classifier
         x = F.dropout(x, p=0.5, training=self.training)
         x = self.lin1(x)
@@ -95,7 +105,7 @@ def test(test_loader, model):
         y_true = torch.cat([y_true, y.cpu()])
     # acc = correct / number
     accuracy = accuracy_score(y_true, y_pred)
-    f1 = f1_score(y_true, y_pred)
+    f1 = f1_score(y_true, y_pred, average='weighted')
     return accuracy, f1
 
 contracts = torch.load("./data/contracts.pkl")

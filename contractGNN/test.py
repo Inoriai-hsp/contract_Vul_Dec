@@ -1,6 +1,9 @@
-from torch_scatter import scatter_mean
-from torch_geometric.datasets import TUDataset
-from torch_geometric.loader import DataLoader
+from transformers import BertTokenizer, BertModel
 
-dataset = TUDataset(root='data/TUDataset', name='MUTAG')
-loader = DataLoader(dataset, batch_size=32, shuffle=True)
+tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+model = BertModel.from_pretrained("bert-base-uncased")
+
+inputs = tokenizer("Hello, my dog is cute", return_tensors="pt")
+outputs = model(**inputs)
+
+last_hidden_states = outputs.last_hidden_state

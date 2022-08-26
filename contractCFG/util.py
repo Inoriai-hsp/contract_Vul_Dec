@@ -194,10 +194,10 @@ def getFunctionBlock(basicBlocks):
         length = len(keys)
         # if instructions[keys[0]] != "JUMPDEST":
         if len(keys) >= 5:
-            if "DUP1" in instructions[keys[length - 5]] and "PUSH" in instructions[keys[length - 4]] and instructions[keys[length - 3]] == "EQ" and "PUSH2" in instructions[keys[length - 2]] and instructions[keys[length - 1]] == "JUMPI":
+            if "DUP1" in instructions[keys[length - 5]] and "PUSH" in instructions[keys[length - 4]] and instructions[keys[length - 3]] == "EQ" and "PUSH" in instructions[keys[length - 2]] and instructions[keys[length - 1]] == "JUMPI":
                 functionBlocks[instructions[keys[length - 4]].split(" ")[1]] = int(instructions[keys[length - 2]].split(" ")[1], 16)
         if len(keys) >= 5:
-            if "PUSH" in instructions[keys[length - 5]] and "DUP2" in instructions[keys[length - 4]] and instructions[keys[length - 3]] == "EQ" and "PUSH2" in instructions[keys[length - 2]] and instructions[keys[length - 1]] == "JUMPI":
+            if "PUSH" in instructions[keys[length - 5]] and "DUP2" in instructions[keys[length - 4]] and instructions[keys[length - 3]] == "EQ" and "PUSH" in instructions[keys[length - 2]] and instructions[keys[length - 1]] == "JUMPI":
                 functionBlocks[instructions[keys[length - 5]].split(" ")[1]] = int(instructions[keys[length - 2]].split(" ")[1], 16)
     return functionBlocks
 
@@ -205,7 +205,7 @@ def getFallback(block):
     instructions = block.getInstructions()
     keys = list(instructions.keys())
     length = len(keys)
-    if "CALLDATASIZE" in instructions[keys[length - 4]] and "PUSH2" in instructions[keys[length - 2]] and instructions[keys[length - 1]] == "JUMPI":
+    if "CALLDATASIZE" in instructions[keys[length - 4]] and "PUSH" in instructions[keys[length - 2]] and instructions[keys[length - 1]] == "JUMPI":
         return int(instructions[keys[length - 2]].split(" ")[1], 16)
     else:
         return None

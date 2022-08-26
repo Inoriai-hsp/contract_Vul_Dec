@@ -1,5 +1,6 @@
 from copy import deepcopy
 import json
+from tqdm import tqdm
 # import os
 from util import *
 from evm import *
@@ -194,6 +195,15 @@ def getCFG(byte):
         filteCfg(function_cfg, blockNumber)
         function_cfgs[function_sig] = deepcopy(function_cfg)
         # generateGraph(basicBlocks, function_cfg, function_sig)
+    if len(functionBlocks) == 0 and fallback_block is None:
+        for key in basicBlocks.keys():
+            block_count[key] = 0
+            function_cfg[key] = {"pre": [], "next": []}
+        block = basicBlocks[0]
+        evm = EVM([], 0)
+        excuteBlock(block, evm)
+        filteCfg(function_cfg, 0)
+        function_cfgs['fallback'] = deepcopy(function_cfg)
     contract_cfg['function_cfgs'] = function_cfgs
     contract_cfg['block_visit'] = coverage_count
     contract_cfg['block_coverage'] = getCoverage(coverage_count)
@@ -203,25 +213,29 @@ def getCFG(byte):
 if __name__ == "__main__":
     with open("/home/huangshiping/data/bytecodes_47398.txt", "r") as f:
         lines = f.readlines()
-        # print(len(lines))
-        # for i in range(0, len(lines)):
-        #     address = lines[i].split('\n')[0].split(':')[0]
-        #     byte = lines[i].split('\n')[0].split(':')[1]
-        #     try:
-        #         contract_cfg = getCFG(byte)
-        #         contract_cfg['address'] = address
-        #         with open("/home/huangshiping/data/cfgs_new2/" + address + ".json", "w") as f:
-        #             f.write(json.dumps(contract_cfg))
-        #     except Exception as e:
-        #         with open("/home/huangshiping/data/error_cfgs2.txt", "a") as f:
-        #             f.write(str(i) + ":" + address + "\n")
-        #     print(str(i))
-        line = lines[47024]
-        address = line.split('\n')[0].split(':')[0]
-        byte = line.split('\n')[0].split(':')[1]
-        contract_cfg = getCFG(byte)
-        with open("/home/huangshiping/data/cfgs_new2/" + address + ".json", "w") as f:
-            f.write(json.dumps(contract_cfg))
+        print(len(lines))
+        for i in tqdm(range(0, len(lines))):
+            address = lines[i].split('\n')[0].split(':')[0]
+            byte = lines[i].split('\n')[0].split(':')[1]
+            try:
+                contract_cfg = getCFG(byte)
+                contract_cfg['address'] = address
+                with open("/home/huangshiping/data/cfgs_new3/" + address + ".json", "w") as f:
+                    f.write(json.dumps(contract_cfg))
+                if len(contract_cfg['function_cfgs']) == 0:
+                    with open("/home/huangshiping/data/no_funcs.txt", "a") as f:
+                        f.write(str(i) + ":" + address + "\n")
+            except Exception as e:
+                with open("/home/huangshiping/data/error_cfgs3.txt", "a") as f:
+                    f.write(str(i) + ":" + address + "\n")
+            # print(str(i))
+        # for line in lines:
+        #     address = line.split('\n')[0].split(':')[0]
+        #     byte = line.split('\n')[0].split(':')[1]
+        #     if address == "0x0148179f1ff77e236e97b646502261ea29517d32":
+                # contract_cfg = getCFG(byte)
+        # with open("/home/huangshiping/data/cfgs_new2/" + address + ".json", "w") as f:
+        #     f.write(json.dumps(contract_cfg))
     # byte_file = open("/home/huangshiping/data/bytecodes.txt", "r")
     # bytecodes = byte_file.readlines()
     # with open("/home/huangshiping/data/errors.txt", "r") as f:
