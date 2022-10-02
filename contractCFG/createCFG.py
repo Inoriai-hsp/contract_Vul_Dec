@@ -183,7 +183,10 @@ def getCFG(byte):
         for key in basicBlocks.keys():
             block_count[key] = 0
             function_cfg[key] = {"pre": [], "next": []}
-        block = basicBlocks[blockNumber]
+        try:
+            block = basicBlocks[blockNumber]
+        except Exception as e:
+            continue
         evm = EVM([int(function_sig, 16)], blockNumber)
         try:
             excuteBlock(block, evm)
@@ -195,7 +198,7 @@ def getCFG(byte):
         filteCfg(function_cfg, blockNumber)
         function_cfgs[function_sig] = deepcopy(function_cfg)
         # generateGraph(basicBlocks, function_cfg, function_sig)
-    if len(functionBlocks) == 0 and fallback_block is None:
+    if len(function_cfgs) == 0 and fallback_block is None:
         for key in basicBlocks.keys():
             block_count[key] = 0
             function_cfg[key] = {"pre": [], "next": []}
@@ -211,54 +214,57 @@ def getCFG(byte):
     # print("done!")
 
 if __name__ == "__main__":
-    with open("/home/huangshiping/data/bytecodes_47398.txt", "r") as f:
-        lines = f.readlines()
-        print(len(lines))
-        for i in tqdm(range(0, len(lines))):
-            address = lines[i].split('\n')[0].split(':')[0]
-            byte = lines[i].split('\n')[0].split(':')[1]
-            try:
-                contract_cfg = getCFG(byte)
-                contract_cfg['address'] = address
-                with open("/home/huangshiping/data/cfgs_new3/" + address + ".json", "w") as f:
-                    f.write(json.dumps(contract_cfg))
-                if len(contract_cfg['function_cfgs']) == 0:
-                    with open("/home/huangshiping/data/no_funcs.txt", "a") as f:
-                        f.write(str(i) + ":" + address + "\n")
-            except Exception as e:
-                with open("/home/huangshiping/data/error_cfgs3.txt", "a") as f:
-                    f.write(str(i) + ":" + address + "\n")
+    # with open("/home/huangshiping/data/bytecodes_47398.txt", "r") as f:
+    #     lines = f.readlines()
+    #     print(len(lines))
+        # for i in tqdm(range(0, len(lines))):
+        #     address = lines[i].split('\n')[0].split(':')[0]
+        #     byte = lines[i].split('\n')[0].split(':')[1]
+        #     try:
+        #         contract_cfg = getCFG(byte)
+        #         contract_cfg['address'] = address
+        #         with open("/home/huangshiping/data/cfgs_new3/" + address + ".json", "w") as f:
+        #             f.write(json.dumps(contract_cfg))
+        #         if len(contract_cfg['function_cfgs']) == 0:
+        #             with open("/home/huangshiping/data/no_funcs.txt", "a") as f:
+        #                 f.write(str(i) + ":" + address + "\n")
+        #     except Exception as e:
+        #         with open("/home/huangshiping/data/error_cfgs3.txt", "a") as f:
+        #             f.write(str(i) + ":" + address + "\n")
             # print(str(i))
         # for line in lines:
         #     address = line.split('\n')[0].split(':')[0]
         #     byte = line.split('\n')[0].split(':')[1]
-        #     if address == "0x0148179f1ff77e236e97b646502261ea29517d32":
-                # contract_cfg = getCFG(byte)
+        #     if address == "0xd9666f92c2e3eeb466e8e690f9f09faf80e71126":
+        #         contract_cfg = getCFG(byte)
         # with open("/home/huangshiping/data/cfgs_new2/" + address + ".json", "w") as f:
         #     f.write(json.dumps(contract_cfg))
-    # byte_file = open("/home/huangshiping/data/bytecodes.txt", "r")
-    # bytecodes = byte_file.readlines()
-    # with open("/home/huangshiping/data/errors.txt", "r") as f:
-    #     lines = f.readlines()
-    #     for line in lines:
-    #         index = int(line.split('\n')[0].split(':')[0])
-    #         address = line.split('\n')[0].split(':')[1]
-    #         bytecode = bytecodes[index]
-    #         if address == bytecode.split('\n')[0].split(':')[0]:
-    #             byte = bytecode.split('\n')[0].split(':')[1]
-    #             try:
-    #                 contract_cfg = getCFG(byte)
-    #                 contract_cfg['address'] = address
-    #                 with open("/home/huangshiping/data/cfgs/" + address + ".json", "w") as f:
-    #                     f.write(json.dumps(contract_cfg))
-    #             except Exception as e:
-    #                 with open("/home/huangshiping/data/errors_again.txt", "a") as f:
-    #                     f.write(str(index) + ":" + address + "\n")
-    #         else:
-    #             with open("/home/huangshiping/data/errors_match.txt", "a") as f:
-    #                 f.write(str(index) + ":" + address + "not match" + "\n")
-    #         print(str(index))
-    # byte_file.close()
-    # dirs = os.listdir("/home/huangshiping/data/cfgs")
-    # print(len(dirs))
+    byte_file = open("/home/huangshiping/data/bytecodes_47398.txt", "r")
+    bytecodes = byte_file.readlines()
+    with open("/home/huangshiping/data/error_cfgs3.txt", "r") as f:
+        lines = f.readlines()
+        for line in lines:
+            index = int(line.split('\n')[0].split(':')[0])
+            address = line.split('\n')[0].split(':')[1]
+            bytecode = bytecodes[index]
+            if address == bytecode.split('\n')[0].split(':')[0]:
+                byte = bytecode.split('\n')[0].split(':')[1]
+                try:
+                    contract_cfg = getCFG(byte)
+                    contract_cfg['address'] = address
+                    with open("/home/huangshiping/data/cfgs_new3/" + address + ".json", "w") as f:
+                        f.write(json.dumps(contract_cfg))
+                    if len(contract_cfg['function_cfgs']) == 0:
+                        with open("/home/huangshiping/data/no_funcs.txt", "a") as f:
+                            f.write(str(index) + ":" + address + "\n")
+                except Exception as e:
+                    with open("/home/huangshiping/data/errors_again.txt", "a") as f:
+                        f.write(str(index) + ":" + address + "\n")
+            else:
+                with open("/home/huangshiping/data/errors_match.txt", "a") as f:
+                    f.write(str(index) + ":" + address + "not match" + "\n")
+            print(str(index))
+    byte_file.close()
+    dirs = os.listdir("/home/huangshiping/data/cfgs")
+    print(len(dirs))
     print("done!")

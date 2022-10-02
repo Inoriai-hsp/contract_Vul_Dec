@@ -108,7 +108,7 @@ def test(test_loader, model):
     f1 = f1_score(y_true, y_pred, average='weighted')
     return accuracy, f1
 
-contracts = torch.load("./data/contracts.pkl")
+contracts = torch.load("./data/contracts_47398.pkl")
 # random.shuffle(contracts)
 kf = KFold(n_splits=10, shuffle=True, random_state=seed)
 for train_index, test_index in kf.split(contracts):
